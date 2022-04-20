@@ -1,0 +1,18 @@
+BasedOnStyle: LLVM
+AccessModifierOffset: '4'
+IndentWidth: '4'
+TabWidth: '4'
+
+AlignConsecutiveAssignments: 'Consecutive'
+AlignConsecutiveMacros:  'Consecutive'
+AlignTrailingComments: 'True'
+IncludeBlocks: 'Regroup'
+IncludeCategories:
+  - Regex:           '^(<|")(freertos(.*))'
+    Priority:        0
+    SortPriority:    2
+  - Regex:           '^(<|")(freertos\/FreeRTOS.h)(<|")'
+    Priority:        0
+    SortPriority:    1
+ColumnLimit: 140
+AlwaysBreakTemplateDeclarations: 'Yes'

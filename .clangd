@@ -1,0 +1,14 @@
+CompileFlags:
+  Add: [
+    -ferror-limit=0,
+    -mlong-calls,
+    --system-header-prefix=driver,
+    --system-header-prefix=std,
+    --system-header-prefix=esp,
+    --system-header-prefix=freertos,
+    -isystem/home/artur/esp/esp-idf/components/**,
+    -isystem/home/artur/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/xtensa-esp32-elf/include,
+    -isystem/home/artur/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/xtensa-esp32-elf/include/sys,
+    -isystem/home/artur/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/include,
+    -isystem/home/artur/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/xtensa-esp32-elf/include/c++/8.4.0]
+  Remove: [-mlongcalls, -fstrict-volatile-bitfields, -fno-tree-switch-conversion]
