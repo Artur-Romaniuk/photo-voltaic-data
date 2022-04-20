@@ -1,13 +1,14 @@
 #pragma once
 
 #include "owb.h"
+#include <array>
 
 template <int MaxDevices>
 class OneWire {
-    OneWireBus *owb_;
+    OneWireBus *owb_{};
     owb_rmt_driver_info rmt_driver_info_{};
-    OneWireBus_ROMCode device_rom_codes_[MaxDevices] = {};
-    int num_devices_                                 = 0;
+    std::array<OneWireBus_ROMCode, MaxDevices> device_rom_codes_ = {};
+    int num_devices_                                             = 0;
 
         public:
     explicit OneWire(gpio_num_t gpio) {
@@ -27,7 +28,9 @@ class OneWire {
         }
         printf("Found %d device%s\n", num_devices_, num_devices_ == 1 ? "" : "s");
     }
+    ~OneWire() { owb_uninitialize(owb_); }
 
-    int get_num_devices() { return num_devices_; }
-    OneWireBus *get_one_wire_bus() { return owb_; }
+    [[nodiscard]] int get_num_devices() const { return num_devices_; }
+    [[nodiscard]] OneWireBus *get_one_wire_bus() { return owb_; }
+    [[nodiscard]] std::array<OneWireBus_ROMCode, MaxDevices> get_device_rom_codes() const { return device_rom_codes_; }
 };
