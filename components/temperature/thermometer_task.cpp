@@ -12,8 +12,6 @@
 #define THERMOMETER_TAG "Thermometer task"
 
 void thermometer_task(void * /*pvParameters*/) {
-    // Find all connected devices
-    ESP_LOGI(THERMOMETER_TAG, "Find devices:\n");
     OneWire<MAX_DEVICES> one_wire(GPIO_DS18B20_0);
 
     // Create DS18B20 devices on the 1-Wire bus
@@ -33,16 +31,16 @@ void thermometer_task(void * /*pvParameters*/) {
 
             // Read the results immediately after conversion otherwise it may fail
             // (using printf before reading may take too long)
-            std::vector<float> readings(MAX_DEVICES);
-            std::vector<DS18B20_ERROR> errors(MAX_DEVICES);
+            std::vector<uint16_t> readings(MAX_DEVICES);
 
             for (int i = 0; i < one_wire.get_num_devices(); ++i) {
-                std::variant<float, DS18B20_ERROR> read_temp_result = devices[i].read_temperature();
-                if (const float *temp = std::get_if<float>(&read_temp_result)) {
-                    readings.push_back(*temp);
-                    ESP_LOGI(THERMOMETER_TAG, "  %d: %.1f\n", i, *temp);
+                devices[i].start_conversion();
+                if (devices[i].get_state() == device_state::DEVICE_OK) {
+                    uint16_t temp = devices[i].get_value();
+                    readings.push_back(temp);
+                    ESP_LOGI(THERMOMETER_TAG, "  %d: %d\n", i, temp);
                 } else {
-                    ESP_LOGE(THERMOMETER_TAG, "Error %d on thermometer no. %d", std::get<DS18B20_ERROR>(read_temp_result), i);
+                    ESP_LOGE(THERMOMETER_TAG, "Error on thermometer no. %d", i);
                 }
             }
 

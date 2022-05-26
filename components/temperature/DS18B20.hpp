@@ -1,11 +1,13 @@
 #pragma once
+#include "device.hpp"
 #include "ds18b20.h"
 #include <memory>
 #include <variant>
 
-class DS18B20 {
+class DS18B20 : public Device {
     OneWireBus *owb_;
     DS18B20_Info ds18b20_info_{};
+    float buffer_ = 0;
 
         public:
     DS18B20(OneWireBus *owb, OneWireBus_ROMCode rom_code, DS18B20_RESOLUTION resolution) : owb_(owb) {
@@ -16,14 +18,15 @@ class DS18B20 {
 
     void wait_for_conversion() { ds18b20_wait_for_conversion(&ds18b20_info_); }
 
-    std::variant<float, DS18B20_ERROR> read_temperature() {
-        float result{};
-        DS18B20_ERROR err = ds18b20_read_temp(&ds18b20_info_, &result);
+    void start_conversion() override {
+        DS18B20_ERROR err = ds18b20_read_temp(&ds18b20_info_, &buffer_);
         if (err != DS18B20_OK) {
-            return err;
+            set_state(device_state::DEVICE_CONNECTION_ERROR);
         }
-        return result;
+        set_state(device_state::DEVICE_OK);
     }
 
     void convert_all_on_bus() { ds18b20_convert_all(owb_); }
+
+    uint16_t get_value() override { return static_cast<uint16_t>(buffer_); }
 };
