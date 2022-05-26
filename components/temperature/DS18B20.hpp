@@ -1,32 +1,42 @@
 #pragma once
 #include "device.hpp"
-#include "ds18b20.h"
-#include <memory>
-#include <variant>
+#include "ds18x20.h"
+#include "esp_log.h"
+#include <vector>
 
 class DS18B20 : public Device {
-    OneWireBus *owb_;
-    DS18B20_Info ds18b20_info_{};
-    float buffer_ = 0;
+    gpio_num_t pin_{};
+    static constexpr const size_t kMaxNumberOfDevices = 5;
+    ds18x20_addr_t addr_list_[kMaxNumberOfDevices];
+    std::vector<uint16_t> readings_{};
+    size_t number_of_devices_{};
 
         public:
-    DS18B20(OneWireBus *owb, OneWireBus_ROMCode rom_code, DS18B20_RESOLUTION resolution) : owb_(owb) {
-        ds18b20_init(&ds18b20_info_, owb_, rom_code); // associate with bus and device
-        ds18b20_use_crc(&ds18b20_info_, true);        // enable CRC check on all reads
-        ds18b20_set_resolution(&ds18b20_info_, resolution);
+    DS18B20(gpio_num_t pin) : pin_{pin} {
+        ds18x20_scan_devices(pin, addr_list_, kMaxNumberOfDevices, &number_of_devices_);
+        readings_.resize(number_of_devices_);
     }
-
-    void wait_for_conversion() { ds18b20_wait_for_conversion(&ds18b20_info_); }
 
     void start_conversion() override {
-        DS18B20_ERROR err = ds18b20_read_temp(&ds18b20_info_, &buffer_);
-        if (err != DS18B20_OK) {
-            set_state(device_state::DEVICE_CONNECTION_ERROR);
+        ds18x20_measure(pin_, DS18X20_ANY, true);
+        float buffer[kMaxNumberOfDevices]{};
+        ds18x20_read_temp_multi(pin_, addr_list_, number_of_devices_, buffer);
+        ESP_LOGI("TEST", "%zu", number_of_devices_);
+        for (size_t i = 0; i < number_of_devices_; i++) {
+            readings_[i] = buffer[i] * 100;
         }
-        set_state(device_state::DEVICE_OK);
     }
 
-    void convert_all_on_bus() { ds18b20_convert_all(owb_); }
+    uint16_t get_value() override {
+        uint16_t sum = 0;
+        for (size_t i = 0; i < number_of_devices_; i++) {
+            sum += readings_[i];
+        }
+        return sum / number_of_devices_;
+    }
 
-    uint16_t get_value() override { return static_cast<uint16_t>(buffer_); }
+    std::vector<uint16_t> get_vector() {
+        ESP_LOGI("TEST", "%zu", readings_.size());
+        return readings_;
+    }
 };

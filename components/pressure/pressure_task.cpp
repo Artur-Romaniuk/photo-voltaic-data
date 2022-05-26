@@ -2,7 +2,7 @@
 #include "BMP280.hpp"
 #include "error_state.hpp"
 
-#define BMX280_SAMPLE_DELAY 1000
+#define BMX280_SAMPLE_DELAY 4000
 #define PRESSURE_TAG        "Pressure Task"
 
 void pressure_task(void * /*pvParameters*/) {
