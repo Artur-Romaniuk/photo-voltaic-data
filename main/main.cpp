@@ -77,8 +77,8 @@ void main_cpp() {
     i2c_config::i2c_init();
     TaskHandle_t thermometer_task_handle = nullptr;
     xTaskCreate(thermometer_task, "thermometer", 2048, nullptr, 5, &thermometer_task_handle);
-    // TaskHandle_t pressure_task_handle = nullptr;
-    // xTaskCreate(pressure_task, "pressure", 2048, nullptr, 5, &pressure_task_handle);
+    TaskHandle_t pressure_task_handle = nullptr;
+    xTaskCreate(pressure_task, "pressure", 2048, nullptr, 5, &pressure_task_handle);
     TaskHandle_t light_task_handle = nullptr;
     xTaskCreate(light_task, "light", 2048, nullptr, 5, &light_task_handle);
 
