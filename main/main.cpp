@@ -11,6 +11,8 @@
 #include "esp_log.h"
 #include "esp_spi_flash.h"
 #include "esp_system.h"
+#include "i2c_config.hpp"
+#include "light_task.hpp"
 #include "nvs_flash.h"
 #include "pressure_task.hpp"
 #include "sdkconfig.h"
@@ -72,10 +74,13 @@ void main_cpp() {
     wifi_sta_start();
     vTaskDelay(5000 / portTICK_RATE_MS);
 
+    i2c_config::i2c_init();
     TaskHandle_t thermometer_task_handle = nullptr;
     xTaskCreate(thermometer_task, "thermometer", 2048, nullptr, 5, &thermometer_task_handle);
-    TaskHandle_t pressure_task_handle = nullptr;
-    xTaskCreate(pressure_task, "pressure", 2048, nullptr, 5, &pressure_task_handle);
+    // TaskHandle_t pressure_task_handle = nullptr;
+    // xTaskCreate(pressure_task, "pressure", 2048, nullptr, 5, &pressure_task_handle);
+    TaskHandle_t light_task_handle = nullptr;
+    xTaskCreate(light_task, "light", 2048, nullptr, 5, &light_task_handle);
 
     esp_http_client_config_t config = {
         .url           = "http://universities.hipolabs.com/search?country=Poland",

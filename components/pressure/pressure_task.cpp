@@ -6,14 +6,8 @@
 #define PRESSURE_TAG        "Pressure Task"
 
 void pressure_task(void * /*pvParameters*/) {
-    i2c_config_t i2c_cfg = {.mode          = I2C_MODE_MASTER,
-                            .sda_io_num    = GPIO_NUM_21,
-                            .scl_io_num    = GPIO_NUM_22,
-                            .sda_pullup_en = false,
-                            .scl_pullup_en = false,
-                            .master        = {.clk_speed = 100000}}; // NOLINT
 
-    BMX280 bmx280(&i2c_cfg);
+    BMX280 bmx280;
 
     while (true) {
 

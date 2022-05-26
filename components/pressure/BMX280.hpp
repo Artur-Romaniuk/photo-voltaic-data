@@ -3,6 +3,7 @@
 #include "bmx280.h"
 #include "device.hpp"
 #include "esp_log.h"
+#include "i2c_config.hpp"
 
 #define PRESSURE_DEVICE_TAG "Pressure Task"
 
@@ -12,18 +13,7 @@ class BMX280 : public Device {
     uint32_t pres_ = 0;
 
         public:
-    BMX280(i2c_config_t *i2c_config) {
-        if (i2c_param_config(I2C_NUM_0, i2c_config) != ESP_OK) {
-            ESP_LOGE(PRESSURE_DEVICE_TAG, "I2C config for BMX280 failed");
-            set_state(device_state::DEVICE_INIT_ERROR);
-            return;
-        }
-        if (i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0) != ESP_OK) {
-            ESP_LOGE(PRESSURE_DEVICE_TAG, "I2C installation for BMX280 failed");
-            set_state(device_state::DEVICE_INIT_ERROR);
-            return;
-        }
-        bmx280 = bmx280_create(I2C_NUM_0);
+    BMX280() : bmx280(bmx280_create(i2c_config::kI2cPort)) {
         if (!bmx280) {
             ESP_LOGE(PRESSURE_DEVICE_TAG, "Could not create bmx280 driver.");
             set_state(device_state::DEVICE_INIT_ERROR);
