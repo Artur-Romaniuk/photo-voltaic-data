@@ -1,5 +1,6 @@
 #include "DS18B20.hpp"
 #include "OneWire.hpp"
+#include "error_state.hpp"
 #include <cstdio>
 #include <vector>
 
@@ -8,11 +9,11 @@
 #define DS18B20_RESOLUTION (DS18B20_RESOLUTION_12_BIT)
 #define SAMPLE_PERIOD      (1000) // milliseconds
 
-void thermometer_task(void * /*pvParameters*/) {
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
+#define THERMOMETER_TAG "Thermometer task"
 
+void thermometer_task(void * /*pvParameters*/) {
     // Find all connected devices
-    printf("Find devices:\n");
+    ESP_LOGI(THERMOMETER_TAG, "Find devices:\n");
     OneWire<MAX_DEVICES> one_wire(GPIO_DS18B20_0);
 
     // Create DS18B20 devices on the 1-Wire bus
@@ -39,16 +40,16 @@ void thermometer_task(void * /*pvParameters*/) {
                 std::variant<float, DS18B20_ERROR> read_temp_result = devices[i].read_temperature();
                 if (const float *temp = std::get_if<float>(&read_temp_result)) {
                     readings.push_back(*temp);
-                    printf("  %d: %.1f\n", i, *temp);
+                    ESP_LOGI(THERMOMETER_TAG, "  %d: %.1f\n", i, *temp);
                 } else {
-                    printf("Error %d on thermometer no. %d", std::get<DS18B20_ERROR>(read_temp_result), i);
+                    ESP_LOGE(THERMOMETER_TAG, "Error %d on thermometer no. %d", std::get<DS18B20_ERROR>(read_temp_result), i);
                 }
             }
 
             vTaskDelayUntil(&last_wake_time, SAMPLE_PERIOD / portTICK_PERIOD_MS);
         }
     } else {
-        printf("\nNo DS18B20 devices detected!\n");
+        ESP_LOGE(THERMOMETER_TAG, "\nNo DS18B20 devices detected!\n");
     }
     vTaskDelete(nullptr);
 }
