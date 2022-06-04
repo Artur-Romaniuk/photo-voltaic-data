@@ -1,3 +1,4 @@
 build
 .cache
 .vscode
+components/http-client/web_server_config.hpp

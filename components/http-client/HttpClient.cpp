@@ -2,20 +2,12 @@
 
 #include "esp_log.h"
 #include "modbus_params.hpp"
+#include "web_server_config.hpp"
 #include <cJSON.h>
 
 static const char *TAG = "WEATHER_API";
 
 constexpr size_t kServerResponseMaxSize = 2500; /**< Defines max size of a buffer, that hold server response. */
-
-/**
- * @brief Get request used for fetching API.
- *
- */
-constexpr char kRequest[] = "GET " WEB_URL " HTTP/1.1\r\n"
-                            "Host: " WEB_SERVER "\r\n"
-                            "User-Agent: esp-idf/1.0 esp32\r\n"
-                            "\r\n";
 
 /**
  * @brief This array will be used by modbus task to send forecast data.
