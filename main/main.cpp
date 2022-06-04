@@ -7,12 +7,15 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include "HttpClient.hpp"
+#include "esp_crt_bundle.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_spi_flash.h"
 #include "esp_system.h"
+#include "http_task.hpp"
 #include "i2c_config.hpp"
 #include "light_task.hpp"
+#include "modbus_task.hpp"
 #include "nvs_flash.h"
 #include "pressure_task.hpp"
 #include "sdkconfig.h"
@@ -24,39 +27,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define TAG "http_client"
-
-esp_err_t _http_event_handle(esp_http_client_event_t *evt) {
-    switch (evt->event_id) {
-    case HTTP_EVENT_ERROR:
-        ESP_LOGI(TAG, "HTTP_EVENT_ERROR");
-        break;
-    case HTTP_EVENT_ON_CONNECTED:
-        ESP_LOGI(TAG, "HTTP_EVENT_ON_CONNECTED");
-        break;
-    case HTTP_EVENT_HEADER_SENT:
-        ESP_LOGI(TAG, "HTTP_EVENT_HEADER_SENT");
-        break;
-    case HTTP_EVENT_ON_HEADER:
-        ESP_LOGI(TAG, "HTTP_EVENT_ON_HEADER");
-        printf("%.*s", evt->data_len, (char *)evt->data);
-        break;
-    case HTTP_EVENT_ON_DATA:
-        ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
-        if (!esp_http_client_is_chunked_response(evt->client)) {
-            printf("%.*s", evt->data_len, (char *)evt->data);
-        }
-
-        break;
-    case HTTP_EVENT_ON_FINISH:
-        ESP_LOGI(TAG, "HTTP_EVENT_ON_FINISH");
-        break;
-    case HTTP_EVENT_DISCONNECTED:
-        ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
-        break;
-    }
-    return ESP_OK;
-}
+#define TAG "main"
 
 void main_cpp() {
 
@@ -75,22 +46,31 @@ void main_cpp() {
     vTaskDelay(5000 / portTICK_RATE_MS);
 
     i2c_config::i2c_init();
+    TaskHandle_t modbus_task_handle = nullptr;
+    xTaskCreate(modbus_task, "modbus", 5000, nullptr, 5, &modbus_task_handle);
     TaskHandle_t thermometer_task_handle = nullptr;
-    xTaskCreate(thermometer_task, "thermometer", 2048, nullptr, 5, &thermometer_task_handle);
+    xTaskCreate(thermometer_task, "thermometer", 2400, nullptr, 5, &thermometer_task_handle);
     TaskHandle_t pressure_task_handle = nullptr;
-    xTaskCreate(pressure_task, "pressure", 2048, nullptr, 5, &pressure_task_handle);
+    xTaskCreate(pressure_task, "pressure", 2400, nullptr, 5, &pressure_task_handle);
     TaskHandle_t light_task_handle = nullptr;
-    xTaskCreate(light_task, "light", 2048, nullptr, 5, &light_task_handle);
-
-    esp_http_client_config_t config = {
-        .url           = "http://universities.hipolabs.com/search?country=Poland",
-        .event_handler = _http_event_handle,
-    };
-    HttpClient http(config);
-
+    xTaskCreate(light_task, "light", 2400, nullptr, 5, &light_task_handle);
+    TaskHandle_t http_task_handle = nullptr;
+    xTaskCreate(http_task, "http", 7000, nullptr, 5, &http_task_handle);
     while (true) {
-        http.perform();
-        vTaskDelay(10000 / portTICK_RATE_MS);
+        UBaseType_t uxHighWaterMark;
+        uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+        ESP_LOGI(TAG, "Main: %d", (int)uxHighWaterMark);
+        uxHighWaterMark = uxTaskGetStackHighWaterMark(modbus_task_handle);
+        ESP_LOGI(TAG, "Modbus: %d", (int)uxHighWaterMark);
+        uxHighWaterMark = uxTaskGetStackHighWaterMark(thermometer_task_handle);
+        ESP_LOGI(TAG, "Thermometer: %d", (int)uxHighWaterMark);
+        uxHighWaterMark = uxTaskGetStackHighWaterMark(pressure_task_handle);
+        ESP_LOGI(TAG, "Pressure: %d", (int)uxHighWaterMark);
+        uxHighWaterMark = uxTaskGetStackHighWaterMark(light_task_handle);
+        ESP_LOGI(TAG, "Light: %d", (int)uxHighWaterMark);
+        uxHighWaterMark = uxTaskGetStackHighWaterMark(http_task_handle);
+        ESP_LOGI(TAG, "HTTP: %d", (int)uxHighWaterMark);
+        vTaskDelay(10000 / portTICK_PERIOD_MS);
     }
     printf("Restarting now.\n");
     fflush(stdout);
