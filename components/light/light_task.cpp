@@ -2,7 +2,7 @@
 
 #define LIGHT_TAG "Light Task"
 
-uint16_t light{};
+uint16_t light{}; /**< Modbus task will get data from this global variable. */
 
 void light_task(void * /*pvParameters*/) {
     BH1750 bh1750;

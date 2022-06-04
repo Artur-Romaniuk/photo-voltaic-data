@@ -3,6 +3,10 @@
 #include <cstdint>
 enum class device_state { DEVICE_OK, DEVICE_UNINITIALIZED, DEVICE_INIT_ERROR, DEVICE_CONNECTION_ERROR, DEVICE_ERROR };
 
+/**
+ * @brief This interface is used for standardizing peripherals.
+ *
+ */
 class Device {
     device_state state_ = device_state::DEVICE_UNINITIALIZED;
 

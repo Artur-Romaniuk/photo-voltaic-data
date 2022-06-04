@@ -41,11 +41,21 @@ void main_cpp() {
         ESP_ERROR_CHECK(nvs_flash_init());
     }
 
+    /**
+     * @brief Starting wifi initialization sequence.
+     *
+     */
+
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     wifi_sta_start();
     vTaskDelay(5000 / portTICK_RATE_MS);
 
-    i2c_config::i2c_init();
+    i2c_config::i2c_init(); /**< Initializing I2C before starting peripherals that use it. I2C GPIOs are defined there.*/
+
+    /**
+     * @brief Starting all component tasks.
+     *
+     */
     TaskHandle_t modbus_task_handle = nullptr;
     xTaskCreate(modbus_task, "modbus", 5000, nullptr, 5, &modbus_task_handle);
     TaskHandle_t thermometer_task_handle = nullptr;
@@ -56,6 +66,11 @@ void main_cpp() {
     xTaskCreate(light_task, "light", 2400, nullptr, 5, &light_task_handle);
     TaskHandle_t http_task_handle = nullptr;
     xTaskCreate(http_task, "http", 7000, nullptr, 5, &http_task_handle);
+
+    /**
+     * @brief Main task is printing free stack space for debug.
+     *
+     */
     while (true) {
         UBaseType_t uxHighWaterMark;
         uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);

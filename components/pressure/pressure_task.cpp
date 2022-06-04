@@ -4,7 +4,7 @@
 
 #define PRESSURE_TAG "Pressure Task"
 
-uint16_t pressure{};
+uint16_t pressure{}; /**< Modbus task will get data from this global variable. */
 
 void pressure_task(void * /*pvParameters*/) {
 

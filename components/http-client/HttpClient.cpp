@@ -6,18 +6,25 @@
 
 static const char *TAG = "WEATHER_API";
 
-#define SERVER_RESPONSE_MAX_SIZE 2500
-static const char REQUEST[] = "GET " WEB_URL " HTTP/1.1\r\n"
-                              "Host: " WEB_SERVER "\r\n"
-                              "User-Agent: esp-idf/1.0 esp32\r\n"
-                              "\r\n";
+constexpr size_t kServerResponseMaxSize = 2500; /**< Defines max size of a buffer, that hold server response. */
 
+/**
+ * @brief Get request used for fetching API.
+ *
+ */
+constexpr char kRequest[] = "GET " WEB_URL " HTTP/1.1\r\n"
+                            "Host: " WEB_SERVER "\r\n"
+                            "User-Agent: esp-idf/1.0 esp32\r\n"
+                            "\r\n";
+
+/**
+ * @brief This array will be used by modbus task to send forecast data.
+ *
+ */
 WeatherForecast forecasts[NUMBER_OF_FORECASTS];
 
 esp_err_t HttpClient::perform() {
-    esp_tls_cfg_t cfg = {
-        .crt_bundle_attach = esp_crt_bundle_attach,
-    };
+    esp_tls_cfg_t cfg = {.crt_bundle_attach = esp_crt_bundle_attach}; /**< Using CRT bundle for TLS encryption. */
 
     struct esp_tls *tls = esp_tls_conn_http_new(WEB_URL, &cfg);
     if (tls == NULL) {
@@ -25,22 +32,26 @@ esp_err_t HttpClient::perform() {
         return ESP_FAIL;
     }
 
-    char buf[SERVER_RESPONSE_MAX_SIZE];
-    int ret = 0;
-    int len = 0;
+    char buf[kServerResponseMaxSize];
+    size_t ret = 0;
+    int len    = 0;
 
+    /**
+     * @brief Sending request to a server.
+     *
+     */
     size_t written_bytes = 0;
     do {
-        ret = esp_tls_conn_write(tls, REQUEST + written_bytes, sizeof(REQUEST) - written_bytes);
+        ret = esp_tls_conn_write(tls, kRequest + written_bytes, sizeof(kRequest) - written_bytes);
         if (ret >= 0) {
-            ESP_LOGI(TAG, "%d bytes written", ret);
+            ESP_LOGI(TAG, "%zu bytes written", ret);
             written_bytes += ret;
         } else if (ret != ESP_TLS_ERR_SSL_WANT_READ && ret != ESP_TLS_ERR_SSL_WANT_WRITE) {
-            ESP_LOGE(TAG, "esp_tls_conn_write  returned: [0x%02X](%s)", ret, esp_err_to_name(ret));
+            ESP_LOGE(TAG, "esp_tls_conn_write  returned: [0x%02zX](%s)", ret, esp_err_to_name(ret));
             esp_tls_conn_delete(tls);
             return ESP_FAIL;
         }
-    } while (written_bytes < sizeof(REQUEST));
+    } while (written_bytes < sizeof(kRequest));
 
     ESP_LOGI(TAG, "Reading HTTP response...");
 
@@ -49,7 +60,7 @@ esp_err_t HttpClient::perform() {
     ret = esp_tls_conn_read(tls, (char *)buf, len);
 
     if (ret < 0) {
-        ESP_LOGE(TAG, "esp_tls_conn_read  returned [-0x%02X](%s)", -ret, esp_err_to_name(ret));
+        ESP_LOGE(TAG, "esp_tls_conn_read  returned [-0x%02zX](%s)", -ret, esp_err_to_name(ret));
         return ESP_FAIL;
     }
 
@@ -61,7 +72,11 @@ esp_err_t HttpClient::perform() {
     len = ret;
     ESP_LOGI(TAG, "%d bytes read", len);
 
-    char *json_start = strchr(buf, '{');
+    /**
+     * @brief Parsing server response using cJson.
+     *
+     */
+    char *json_start = strchr(buf, '{'); /**< Finding begging and end of json inside server response by { and }. */
     char *json_end   = strrchr(buf, '}');
     if (json_start && json_end) {
         *(json_end + 1) = '\n';

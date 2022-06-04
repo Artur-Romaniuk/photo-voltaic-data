@@ -16,18 +16,25 @@ class BH1750 : public Device {
             ESP_LOGE(BH1750_TAG, "BH1750 init desc error");
         }
         ESP_LOGI(BH1750_TAG, "%d", device_struct_.port);
+        init();
+    }
+    ~BH1750() { bh1750_free_desc(&device_struct_); }
 
+    void init() {
         if (bh1750_power_on(&device_struct_) != ESP_OK) {
             ESP_LOGE(BH1750_TAG, "BH1750 power on error");
+            return;
         }
         if (bh1750_setup(&device_struct_, BH1750_MODE_CONTINUOUS, BH1750_RES_HIGH)) {
             ESP_LOGE(BH1750_TAG, "BH1750 setup error");
         }
     }
-    ~BH1750() { bh1750_free_desc(&device_struct_); }
+
     void start_conversion() override {
         vTaskDelay(120 / portTICK_RATE_MS);
-        bh1750_read(&device_struct_, &buffer_);
+        if (bh1750_read(&device_struct_, &buffer_) != ESP_OK) {
+            init();
+        }
     }
 
     uint16_t get_value() override {
