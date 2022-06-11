@@ -38,6 +38,7 @@ static void update_input_registers() {
                         .temp_r3        = temperatures[2],
                         .light          = light,
                         .pressure       = pressure,
+                        .humidity       = humidity,
                         .fc1_date       = forecasts[0].date,
                         .fc1_temp       = forecasts[0].temp,
                         .fc1_clouds     = forecasts[0].clouds,
@@ -119,7 +120,7 @@ void modbus_task(void * /*pvParameters*/) {
 
     // Set UART driver mode to Half Duplex
     ESP_LOGI(TAG, "uart_set_mode");
-    ESP_ERROR_CHECK(uart_set_mode(MB_PORT_NUM, UART_MODE_UART));
+    ESP_ERROR_CHECK(uart_set_mode(MB_PORT_NUM, UART_MODE_UART)); // should be RS-485 half duplex
 
     mb_param_info_t reg_info; // keeps the Modbus registers access information
     while (true) {

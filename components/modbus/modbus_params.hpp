@@ -9,6 +9,7 @@ struct InputRegParams {
     uint16_t temp_r3;
     uint16_t light;
     uint16_t pressure;
+    uint16_t humidity;
     uint16_t fc1_date;
     uint16_t fc1_temp;
     uint16_t fc1_clouds;
