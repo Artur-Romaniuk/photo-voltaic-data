@@ -10,8 +10,8 @@ static const char *TAG = "WEATHER_API";
 constexpr size_t kServerResponseMaxSize = 2500; /**< Defines max size of a buffer, that hold server response. */
 
 esp_err_t HttpClient::perform() {
-    esp_tls_cfg_t cfg = {.crt_bundle_attach = esp_crt_bundle_attach}; /**< Using CRT bundle for TLS encryption. */
-
+    // esp_tls_cfg_t cfg = {.crt_bundle_attach = esp_crt_bundle_attach}; /**< Using CRT bundle for TLS encryption. */
+    esp_tls_cfg_t cfg{};
     struct esp_tls *tls = esp_tls_conn_http_new(WEB_URL, &cfg);
     if (tls == NULL) {
         ESP_LOGE(TAG, "Could not connect to %s", WEB_URL);
