@@ -9,12 +9,6 @@ static const char *TAG = "WEATHER_API";
 
 constexpr size_t kServerResponseMaxSize = 2500; /**< Defines max size of a buffer, that hold server response. */
 
-/**
- * @brief This array will be used by modbus task to send forecast data.
- *
- */
-WeatherForecast forecasts[NUMBER_OF_FORECASTS];
-
 esp_err_t HttpClient::perform() {
     esp_tls_cfg_t cfg = {.crt_bundle_attach = esp_crt_bundle_attach}; /**< Using CRT bundle for TLS encryption. */
 
@@ -25,8 +19,8 @@ esp_err_t HttpClient::perform() {
     }
 
     char buf[kServerResponseMaxSize];
-    size_t ret = 0;
-    int len    = 0;
+    ssize_t ret = 0;
+    int len     = 0;
 
     /**
      * @brief Sending request to a server.
@@ -92,14 +86,15 @@ esp_err_t HttpClient::perform() {
                 ESP_LOGE(TAG, "JSON parse error");
             }
 
-            ESP_LOGI(TAG, "%d %f %d %d %d %d", dt->valueint, temp->valuedouble, pressure->valueint, humidity->valueint,
-                     clouds_all->valueint, visibility->valueint);
-            forecasts[i] = {.date       = static_cast<uint16_t>(dt->valueint),
-                            .temp       = static_cast<uint16_t>((temp->valuedouble * 100)),
-                            .clouds     = static_cast<uint16_t>(clouds_all->valueint),
-                            .visibility = static_cast<uint16_t>(visibility->valueint),
-                            .humidity   = static_cast<uint16_t>(humidity->valueint),
-                            .pressure   = static_cast<uint16_t>(pressure->valueint)};
+            WeatherForecast forecast_struct = {.date       = static_cast<uint32_t>(dt->valueint),
+                                               .temp       = static_cast<uint16_t>((temp->valuedouble * 100)),
+                                               .clouds     = static_cast<uint16_t>(clouds_all->valueint),
+                                               .visibility = static_cast<uint16_t>(visibility->valueint),
+                                               .humidity   = static_cast<uint16_t>(humidity->valueint),
+                                               .pressure   = static_cast<uint16_t>(pressure->valueint)};
+
+            update_modbus_weather_forecast(i, forecast_struct);
+            i++;
         }
         cJSON_free(json);
     } else {

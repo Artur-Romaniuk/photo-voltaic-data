@@ -10,7 +10,8 @@ constexpr const i2c_config_t kI2cCfg = {.mode          = I2C_MODE_MASTER,
                                         .scl_io_num    = GPIO_NUM_22,
                                         .sda_pullup_en = false,
                                         .scl_pullup_en = false,
-                                        .master        = {.clk_speed = 100000}}; // NOLINT
+                                        .master        = {.clk_speed = 100000},
+                                        .clk_flags     = I2C_SCLK_SRC_FLAG_FOR_NOMAL};
 
 enum class i2c_status { I2C_INITIALIZED, I2C_UNINITIALIZED, I2C_ERROR };
 

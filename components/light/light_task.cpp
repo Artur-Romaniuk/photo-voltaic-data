@@ -1,4 +1,5 @@
 #include "BH1750.hpp"
+#include "modbus_params.hpp"
 
 #define LIGHT_TAG "Light Task"
 
@@ -13,6 +14,6 @@ void light_task(void * /*pvParameters*/) {
 
         bh1750.start_conversion();
         ESP_LOGI(LIGHT_TAG, "Read Values: light = %d", bh1750.get_value());
-        light = bh1750.get_value();
+        update_modbus_light(bh1750.get_value());
     }
 }

@@ -1,15 +1,12 @@
 
 #include "BMP280.hpp"
 #include "DHT11.hpp"
-#include "error_state.hpp"
+#include "modbus_params.hpp"
 
 #define PRESSURE_TAG "Pressure Task"
 #define HUMIDITY_TAG "Humidity Task"
 
-uint16_t pressure{}; /**< Modbus task will get data from this global variable. */
-uint16_t humidity{}; /**< Modbus task will get data from this global variable. */
-
-void pressure_task(void * /*pvParameters*/) {
+void pressure_humidity_task(void * /*pvParameters*/) {
 
     BMP280 bmp280;
     DHT11 dht11;
@@ -23,8 +20,8 @@ void pressure_task(void * /*pvParameters*/) {
         ESP_LOGI(PRESSURE_TAG, "Read Values: pres = %d", bmp280.get_value());
         ESP_LOGI(HUMIDITY_TAG, "Read Values: hum = %d", dht11.get_value());
 
-        pressure = bmp280.get_value();
-        humidity = dht11.get_value();
+        update_modbus_pressure(bmp280.get_value());
+        update_modbus_humidity(dht11.get_value());
     }
 
     vTaskDelete(nullptr);

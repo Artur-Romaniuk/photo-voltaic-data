@@ -5,7 +5,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 
-constexpr gpio_num_t kDht11GpioNum = GPIO_NUM_5;
+constexpr gpio_num_t kDht11GpioNum = GPIO_NUM_23;
 
 class DHT11 : public Device {
     uint16_t humidity_ = 0;

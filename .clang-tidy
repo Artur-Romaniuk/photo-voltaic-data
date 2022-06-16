@@ -8,7 +8,8 @@ Checks:
 -cppcoreguidelines-avoid-c-arrays,
 -fuchsia-default-arguments-calls,
 -altera-unroll-loops,
--altera-struct-pack-align'
+-altera-struct-pack-align',
+-cppcoreguidelines-pro-bounds-constant-array-index
 
 
 

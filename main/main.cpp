@@ -17,7 +17,7 @@
 #include "light_task.hpp"
 #include "modbus_task.hpp"
 #include "nvs_flash.h"
-#include "pressure_task.hpp"
+#include "pressure_humidity_task.hpp"
 #include "sdkconfig.h"
 #include "thermometer_task.hpp"
 #include "wifi_init.hpp"
@@ -50,22 +50,20 @@ void main_cpp() {
     wifi_sta_start();
     vTaskDelay(5000 / portTICK_RATE_MS);
 
-    i2c_config::i2c_init(); /**< Initializing I2C before starting peripherals that use it. I2C GPIOs are defined there.*/
-
     /**
      * @brief Starting all component tasks.
      *
      */
-    TaskHandle_t modbus_task_handle = nullptr;
-    xTaskCreate(modbus_task, "modbus", 5000, nullptr, 5, &modbus_task_handle);
     TaskHandle_t thermometer_task_handle = nullptr;
     xTaskCreate(thermometer_task, "thermometer", 2400, nullptr, 5, &thermometer_task_handle);
-    TaskHandle_t pressure_task_handle = nullptr;
-    xTaskCreate(pressure_task, "pressure", 2400, nullptr, 5, &pressure_task_handle);
+    TaskHandle_t pressure_humidity_task_handle = nullptr;
+    xTaskCreate(pressure_humidity_task, "pressure", 2400, nullptr, 5, &pressure_humidity_task_handle);
     TaskHandle_t light_task_handle = nullptr;
     xTaskCreate(light_task, "light", 2400, nullptr, 5, &light_task_handle);
     TaskHandle_t http_task_handle = nullptr;
     xTaskCreate(http_task, "http", 7000, nullptr, 5, &http_task_handle);
+    TaskHandle_t modbus_task_handle = nullptr;
+    xTaskCreate(modbus_task, "modbus", 5000, nullptr, 5, &modbus_task_handle);
 
     /**
      * @brief Main task is printing free stack space for debug.
@@ -79,7 +77,7 @@ void main_cpp() {
         ESP_LOGI(TAG, "Modbus: %d", (int)uxHighWaterMark);
         uxHighWaterMark = uxTaskGetStackHighWaterMark(thermometer_task_handle);
         ESP_LOGI(TAG, "Thermometer: %d", (int)uxHighWaterMark);
-        uxHighWaterMark = uxTaskGetStackHighWaterMark(pressure_task_handle);
+        uxHighWaterMark = uxTaskGetStackHighWaterMark(pressure_humidity_task_handle);
         ESP_LOGI(TAG, "Pressure: %d", (int)uxHighWaterMark);
         uxHighWaterMark = uxTaskGetStackHighWaterMark(light_task_handle);
         ESP_LOGI(TAG, "Light: %d", (int)uxHighWaterMark);

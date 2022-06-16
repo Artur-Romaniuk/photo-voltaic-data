@@ -13,7 +13,7 @@ void http_task(void * /*pvParameters*/) {
          * @brief Waiting for WiFi connection before starting http service.
          *
          */
-        EventBits_t sc_bits = xEventGroupWaitBits(s_wifi_event_group, WIFI_CONNECTED_BIT, true, false, portMAX_DELAY);
+        EventBits_t sc_bits = xEventGroupWaitBits(s_wifi_event_group, WIFI_CONNECTED_BIT, false, false, portMAX_DELAY);
         if (sc_bits & WIFI_CONNECTED_BIT) {
             break;
         }
@@ -21,13 +21,18 @@ void http_task(void * /*pvParameters*/) {
 
     HttpClient http;
     TickType_t last_wake_time  = xTaskGetTickCount();
-    const TickType_t frequency = 60000 / portTICK_PERIOD_MS; /**< Fetch API every 1min. */
+    const TickType_t frequency = 30000 / portTICK_PERIOD_MS; /**< Fetch API every 1min. */
 
     while (true) {
         vTaskDelayUntil(&last_wake_time, frequency);
 
-        while (http.perform() != ESP_OK) {
-            vTaskDelay(100 / portTICK_PERIOD_MS); /**< HTTPS fails pretty often. No matter the reason try reconnecting after 100ms. */
+        EventBits_t sc_bits = xEventGroupWaitBits(s_wifi_event_group, WIFI_CONNECTED_BIT, false, false, 100 / portTICK_PERIOD_MS);
+        if (sc_bits & WIFI_CONNECTED_BIT) {
+            while (http.perform() != ESP_OK) {
+                vTaskDelay(100 / portTICK_PERIOD_MS); /**< HTTPS fails pretty often. No matter the reason try reconnecting after 100ms. */
+            }
+        } else {
+            ESP_LOGE(TAG, "WiFi disconnected, didn't download API");
         }
     }
     vTaskDelete(nullptr);
