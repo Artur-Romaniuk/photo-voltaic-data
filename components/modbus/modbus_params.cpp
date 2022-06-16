@@ -16,7 +16,6 @@ void update_modbus_weather_forecast(uint8_t iterator, const WeatherForecast &val
     portENTER_CRITICAL(&param_lock);
     input_reg_params.forecasts[iterator] = value;
     portEXIT_CRITICAL(&param_lock);
-    ESP_LOGI("UPDATING FORECAST", "%d", input_reg_params.forecasts[iterator].date);
 }
 
 void update_modbus_temperature(uint8_t iterator, uint16_t value) {

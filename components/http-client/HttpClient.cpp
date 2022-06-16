@@ -96,7 +96,7 @@ esp_err_t HttpClient::perform() {
             update_modbus_weather_forecast(i, forecast_struct);
             i++;
         }
-        cJSON_free(json);
+        cJSON_Delete(json);
     } else {
         esp_tls_conn_delete(tls);
         return ESP_FAIL;

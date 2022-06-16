@@ -8,17 +8,6 @@
 #define TAG "Weather API"
 
 void http_task(void * /*pvParameters*/) {
-    while (true) {
-        /**
-         * @brief Waiting for WiFi connection before starting http service.
-         *
-         */
-        EventBits_t sc_bits = xEventGroupWaitBits(s_wifi_event_group, WIFI_CONNECTED_BIT, false, false, portMAX_DELAY);
-        if (sc_bits & WIFI_CONNECTED_BIT) {
-            break;
-        }
-    }
-
     HttpClient http;
     TickType_t last_wake_time  = xTaskGetTickCount();
     const TickType_t frequency = 60000 / portTICK_PERIOD_MS; /**< Fetch API every 1min. */
@@ -26,6 +15,10 @@ void http_task(void * /*pvParameters*/) {
     while (true) {
         vTaskDelayUntil(&last_wake_time, frequency);
 
+        /**
+         * @brief Waiting for WiFi connection.
+         *
+         */
         EventBits_t sc_bits = xEventGroupWaitBits(s_wifi_event_group, WIFI_CONNECTED_BIT, false, false, 100 / portTICK_PERIOD_MS);
         if (sc_bits & WIFI_CONNECTED_BIT) {
             while (http.perform() != ESP_OK) {
