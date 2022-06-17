@@ -61,7 +61,7 @@ void main_cpp() {
     TaskHandle_t light_task_handle = nullptr;
     xTaskCreate(light_task, "light", 2400, nullptr, 5, &light_task_handle);
     TaskHandle_t http_task_handle = nullptr;
-    xTaskCreate(http_task, "http", 7000, nullptr, 5, &http_task_handle);
+    xTaskCreate(http_task, "http", 7500, nullptr, 5, &http_task_handle);
     TaskHandle_t modbus_task_handle = nullptr;
     xTaskCreate(modbus_task, "modbus", 5000, nullptr, 5, &modbus_task_handle);
 

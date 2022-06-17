@@ -16,7 +16,9 @@
 #define MB_SLAVE_ADDR        (2)  // The address of device in Modbus network
 #define MB_PAR_INFO_GET_TOUT (10) // Timeout for get parameter info
 
-InputRegParams input_reg_params{};
+#define MB_READ_MASK       (MB_EVENT_INPUT_REG_RD | MB_EVENT_HOLDING_REG_RD)
+#define MB_WRITE_MASK      (MB_EVENT_HOLDING_REG_WR)
+#define MB_READ_WRITE_MASK (MB_READ_MASK | MB_WRITE_MASK)
 
 void modbus_task(void * /*pvParameters*/) {
 
@@ -47,6 +49,12 @@ void modbus_task(void * /*pvParameters*/) {
     reg_area.size         = sizeof(input_reg_params);
     ESP_ERROR_CHECK(mbc_slave_set_descriptor(reg_area));
 
+    reg_area.type         = MB_PARAM_HOLDING;
+    reg_area.start_offset = 0;
+    reg_area.address      = (void *)&holding_reg_params;
+    reg_area.size         = sizeof(holding_reg_params);
+    ESP_ERROR_CHECK(mbc_slave_set_descriptor(reg_area));
+
     // Starts of modbus controller and stack
     ESP_ERROR_CHECK(mbc_slave_start());
 
@@ -61,9 +69,12 @@ void modbus_task(void * /*pvParameters*/) {
 
     mb_param_info_t reg_info; // keeps the Modbus registers access information
     while (true) {
-        mb_event_group_t event = mbc_slave_check_event((mb_event_group_t)MB_EVENT_INPUT_REG_RD);
+        mb_event_group_t event = mbc_slave_check_event((mb_event_group_t)MB_READ_WRITE_MASK);
 
         // Filter events and process them accordingly
+        if (event & (MB_EVENT_HOLDING_REG_WR | MB_EVENT_HOLDING_REG_RD)) {
+            mbc_slave_get_param_info(&reg_info, MB_PAR_INFO_GET_TOUT);
+        }
         if (event & MB_EVENT_INPUT_REG_RD) {
             mbc_slave_get_param_info(&reg_info, MB_PAR_INFO_GET_TOUT);
         }

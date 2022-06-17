@@ -9,7 +9,7 @@ constexpr const size_t kMaxNumberOfDevices = 3;
 class DS18B20 : public Device {
     gpio_num_t pin_{};
     ds18x20_addr_t addr_list_[kMaxNumberOfDevices];
-    std::vector<uint16_t> readings_{};
+    std::vector<int16_t> readings_{};
     size_t number_of_devices_{};
 
         public:
@@ -35,13 +35,7 @@ class DS18B20 : public Device {
         }
     }
 
-    uint16_t get_value() override {
-        uint16_t sum = 0;
-        for (size_t i = 0; i < number_of_devices_; i++) {
-            sum += readings_[i];
-        }
-        return sum / number_of_devices_;
-    }
+    uint16_t get_value() override { return 0; }
 
-    std::vector<uint16_t> get_vector() { return readings_; }
+    std::vector<int16_t> get_vector() { return readings_; }
 };

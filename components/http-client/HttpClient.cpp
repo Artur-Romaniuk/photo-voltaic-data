@@ -7,28 +7,27 @@
 
 static const char *TAG = "WEATHER_API";
 
-constexpr size_t kServerResponseMaxSize = 2500; /**< Defines max size of a buffer, that hold server response. */
+constexpr size_t kServerResponseMaxSize = 4000; /**< Defines max size of a buffer, that hold server response. */
 
 esp_err_t HttpClient::perform() {
     // esp_tls_cfg_t cfg = {.crt_bundle_attach = esp_crt_bundle_attach}; /**< Using CRT bundle for TLS encryption. */
     esp_tls_cfg_t cfg{};
-    struct esp_tls *tls = esp_tls_conn_http_new(WEB_URL, &cfg);
+    struct esp_tls *tls = esp_tls_conn_http_new(get_url().c_str(), &cfg);
     if (tls == NULL) {
-        ESP_LOGE(TAG, "Could not connect to %s", WEB_URL);
+        ESP_LOGE(TAG, "Could not connect to %s", get_url().c_str());
         return ESP_FAIL;
     }
 
     char buf[kServerResponseMaxSize];
     ssize_t ret = 0;
     int len     = 0;
-
     /**
      * @brief Sending request to a server.
      *
      */
     size_t written_bytes = 0;
     do {
-        ret = esp_tls_conn_write(tls, kRequest + written_bytes, sizeof(kRequest) - written_bytes);
+        ret = esp_tls_conn_write(tls, get_request().c_str() + written_bytes, get_request().size() - written_bytes);
         if (ret >= 0) {
             ESP_LOGI(TAG, "%zu bytes written", ret);
             written_bytes += ret;
@@ -37,7 +36,7 @@ esp_err_t HttpClient::perform() {
             esp_tls_conn_delete(tls);
             return ESP_FAIL;
         }
-    } while (written_bytes < sizeof(kRequest));
+    } while (written_bytes < get_request().size());
 
     ESP_LOGI(TAG, "Reading HTTP response...");
 
@@ -86,8 +85,9 @@ esp_err_t HttpClient::perform() {
                 ESP_LOGE(TAG, "JSON parse error");
             }
 
-            WeatherForecast forecast_struct = {.date       = static_cast<uint32_t>(dt->valueint),
-                                               .temp       = static_cast<uint16_t>((temp->valuedouble * 100)),
+            WeatherForecast forecast_struct = {.date_u     = static_cast<uint16_t>(dt->valueint >> 16),
+                                               .date_l     = static_cast<uint16_t>(dt->valueint),
+                                               .temp       = static_cast<int16_t>((temp->valuedouble * 100)),
                                                .clouds     = static_cast<uint16_t>(clouds_all->valueint),
                                                .visibility = static_cast<uint16_t>(visibility->valueint),
                                                .humidity   = static_cast<uint16_t>(humidity->valueint),

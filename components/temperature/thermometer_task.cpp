@@ -11,7 +11,8 @@ constexpr gpio_num_t kGpioDS18B20 = GPIO_NUM_4;
 
 #define THERMOMETER_TAG "Thermometer task"
 
-static_assert(kMaxNumberOfDevices <= kMaxNumberOfThermometersModbus); // asserting that Modbus struct has more than enough places for temperature readings
+static_assert(kMaxNumberOfDevices <=
+              kMaxNumberOfThermometersModbus); // asserting that Modbus struct has more than enough places for temperature readings
 
 void thermometer_task(void * /*pvParameters*/) {
 
