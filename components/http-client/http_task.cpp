@@ -10,7 +10,7 @@
 void http_task(void * /*pvParameters*/) {
     HttpClient http;
     TickType_t last_wake_time  = xTaskGetTickCount();
-    const TickType_t frequency = 15000 / portTICK_PERIOD_MS; /**< Fetch API every 1min. */
+    const TickType_t frequency = 60000 / portTICK_PERIOD_MS; /**< Fetch API every 1min. */
 
     while (true) {
         vTaskDelayUntil(&last_wake_time, frequency);
