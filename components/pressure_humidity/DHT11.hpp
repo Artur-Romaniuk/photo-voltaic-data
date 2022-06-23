@@ -18,7 +18,7 @@ class DHT11 : public Device {
             this->set_state(device_state::DEVICE_ERROR);
         else {
             this->set_state(device_state::DEVICE_OK);
-            humidity_ = humidity / 10;
+            humidity_ = humidity;
         };
     }
 
